@@ -27,6 +27,22 @@ class ProjectionHead(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.layers(x)
+    
+class ClassifierHead(nn.Module):
+    """MLP#2 — binary classifier that sits on top of frozen contrastive embeddings."""
+
+    def __init__(self, input_dim: int = 128, dropout: float = 0.1) -> None:
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(input_dim, input_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(input_dim, 1),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.layers(x).squeeze(-1)
 
 class CodeBERTContrastiveEncoder(nn.Module):
     def __init__(
