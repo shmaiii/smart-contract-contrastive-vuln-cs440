@@ -1,5 +1,6 @@
 # SemanticBERT - 440 Project
 ### File Structure:
+```
 .
 ├── datasets/
 │   ├── contrastive_dataset.py     # Custom Dataset class for contrastive pairs
@@ -19,6 +20,7 @@
 ├── utils/                         # Helper functions and logging utilities
 ├── requirements.txt               # Project dependencies
 └── README.md
+```
 
 ### External Resources
 
