@@ -20,8 +20,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from actual_model.contrastive_dataset import ChunkInferenceDataset, ChunkTripletDataset
-from actual_model.codebert_contrastive import CodeBERTContrastiveEncoder
+from models.semantic_bert.contrastive_dataset import ChunkInferenceDataset, ChunkTripletDataset
+from models.semantic_bert.codebert_contrastive import CodeBERTContrastiveEncoder
 
 
 @dataclass
