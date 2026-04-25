@@ -104,7 +104,7 @@ def evaluate(
             contract_label_batch = batch["contract_label"]
 
             embeddings = model.encode_chunks(input_ids, attention_mask)
-            probs = model.classifier_head(embeddings)
+            probs = torch.sigmoid(model.classifier_head(embeddings))
 
             for i, contract_id in enumerate(contract_ids.tolist()):
                 contract_scores[contract_id].append(float(probs[i].item()))
@@ -214,10 +214,9 @@ def train(config: TrainConfig) -> None:
             neg_emb, _                = model(neg_ids, neg_mask)
 
             # contrastive loss (triplet)
-            # ClassifierHead uses Sigmoid — convert scores to logits for BCEWithLogitsLoss
-            anchor_logits = torch.logit(anchor_scores.clamp(1e-6, 1 - 1e-6))
+            # anchor_scores are raw logits — feed directly to BCEWithLogitsLoss
             l_triplet = triplet_loss_fn(anchor_emb, pos_emb, neg_emb)
-            l_clf = (bce_loss_fn(anchor_logits, labels) * weights).mean()
+            l_clf = (bce_loss_fn(anchor_scores, labels) * weights).mean()
 
             loss = l_triplet + config.lambda_clf * l_clf
             loss.backward()

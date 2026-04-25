@@ -71,7 +71,7 @@ def run_inference(
             contract_labels = batch["contract_label"]
 
             embeddings = model.encode_chunks(input_ids, attention_mask)
-            scores = model.classifier_head(embeddings)
+            scores = torch.sigmoid(model.classifier_head(embeddings))
 
             all_embeddings.append(embeddings.cpu().numpy())
 

@@ -139,7 +139,7 @@ def _forward_from_embeds(
     pooled    = model.pooler(outputs.last_hidden_state, attention_mask)
     projected = model.projection_head(pooled)
     normed    = F.normalize(projected, p=2, dim=-1)
-    score     = model.classifier_head(normed)          # (batch,)
+    score     = torch.sigmoid(model.classifier_head(normed))  # (batch,) probabilities
     return score
 
 

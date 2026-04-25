@@ -42,10 +42,10 @@ class ClassifierHead(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(input_dim, 1),
-            nn.Sigmoid(),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Returns raw logits (batch,). Apply sigmoid externally when probabilities are needed."""
         return self.layers(x).squeeze(-1)
 
 
@@ -106,7 +106,7 @@ class CodeBERTContrastiveEncoder(nn.Module):
             scores of shape (batch,)
         """
         embeddings = self.encode_chunks(input_ids, attention_mask)
-        return self.classifier_head(embeddings)
+        return torch.sigmoid(self.classifier_head(embeddings))
 
     def forward(
         self,

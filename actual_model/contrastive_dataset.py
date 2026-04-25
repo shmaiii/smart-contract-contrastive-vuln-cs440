@@ -36,10 +36,19 @@ class ChunkTripletDataset(Dataset):
         self.max_length = max_length
         self.rng = random.Random(seed)
 
-        # index chunks by contract_id for negative sampling
+        # index chunks by contract_id and by label for negative sampling
         self.contract_to_indices: Dict[int, List[int]] = defaultdict(list)
+        # label_to_indices[label] = list of dataset indices with that chunk label
+        self.label_to_indices: Dict[int, List[int]] = defaultdict(list)
+        # contract_label_to_indices[(contract_id, label)] = indices
+        self.contract_label_to_indices: Dict[tuple, List[int]] = defaultdict(list)
+
         for idx, item in enumerate(self.data):
-            self.contract_to_indices[item["contract_id"]].append(idx)
+            cid   = item["contract_id"]
+            label = int(item["label"])
+            self.contract_to_indices[cid].append(idx)
+            self.label_to_indices[label].append(idx)
+            self.contract_label_to_indices[(cid, label)].append(idx)
 
         self.contract_ids = list(self.contract_to_indices.keys())
         if len(self.contract_ids) < 2:
@@ -62,15 +71,42 @@ class ChunkTripletDataset(Dataset):
             t = torch.cat([t, pad])
         return t
 
-    def _sample_negative(self, excluded_contract_id: int) -> Dict:
-        choices = [cid for cid in self.contract_ids if cid != excluded_contract_id]
-        neg_contract_id = self.rng.choice(choices)
+    def _sample_negative(self, anchor_contract_id: int, anchor_label: int) -> Dict:
+        """
+        Hard-negative mining with fallback chain:
+
+        1. Hard negative   — opposite-label chunk from the SAME contract
+           (e.g. safe chunk inside the same vulnerable contract)
+        2. Medium negative — opposite-label chunk from a DIFFERENT contract
+        3. Easy negative   — any chunk from a different contract (original behaviour)
+
+        The opposite label forces the model to separate vulnerability signal
+        rather than just contract identity.
+        """
+        opposite_label = 1 - anchor_label
+
+        # 1. Hard: opposite label, same contract
+        hard_pool = self.contract_label_to_indices.get((anchor_contract_id, opposite_label), [])
+        if hard_pool:
+            return self.data[self.rng.choice(hard_pool)]
+
+        # 2. Medium: opposite label, different contract
+        medium_pool = [
+            idx for idx in self.label_to_indices.get(opposite_label, [])
+            if self.data[idx]["contract_id"] != anchor_contract_id
+        ]
+        if medium_pool:
+            return self.data[self.rng.choice(medium_pool)]
+
+        # 3. Easy fallback: any chunk from a different contract
+        other_contracts = [cid for cid in self.contract_ids if cid != anchor_contract_id]
+        neg_contract_id = self.rng.choice(other_contracts)
         neg_idx = self.rng.choice(self.contract_to_indices[neg_contract_id])
         return self.data[neg_idx]
 
     def __getitem__(self, index: int) -> Dict:
         item = self.data[index]
-        neg = self._sample_negative(item["contract_id"])
+        neg = self._sample_negative(item["contract_id"], int(item["label"]))
 
         anchor_ids = self._pad_or_truncate(item["anchor_input_ids"])
         pos_ids = self._pad_or_truncate(item["pos_input_ids"])
