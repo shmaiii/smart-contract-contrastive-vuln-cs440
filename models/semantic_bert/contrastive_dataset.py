@@ -11,8 +11,6 @@ from torch.utils.data import Dataset
 
 class ChunkTripletDataset(Dataset):
     """
-    Training dataset — loads pre-chunked data from a .pt file.
-
     Each item in the .pt list is expected to have:
         contract_id       (int)   — groups chunks belonging to the same contract
         anchor_input_ids  (list)  — token IDs for the original chunk
@@ -21,11 +19,6 @@ class ChunkTripletDataset(Dataset):
         weight            (float) — class-imbalance weight
         contract_label    (int)   — contract-level label
         chunk_line_labels (list)  — per-line labels within the chunk
-
-    __getitem__ returns a triplet:
-        anchor   = original chunk
-        positive = pre-augmented version of the same chunk  (from pos_input_ids)
-        negative = a random chunk from a *different* contract_id
     """
 
     def __init__(self, data: List[Dict], *, max_length: int = 512, seed: int = 42) -> None:
@@ -80,8 +73,6 @@ class ChunkTripletDataset(Dataset):
         2. Medium negative — opposite-label chunk from a DIFFERENT contract
         3. Easy negative   — any chunk from a different contract (original behaviour)
 
-        The opposite label forces the model to separate vulnerability signal
-        rather than just contract identity.
         """
         opposite_label = 1 - anchor_label
 
@@ -127,11 +118,6 @@ class ChunkTripletDataset(Dataset):
 
 
 class ChunkInferenceDataset(Dataset):
-    """
-    Eval / inference dataset — no triplets, no negatives.
-    Returns one chunk at a time with its contract_id for MIL aggregation.
-    Mirrors baseline_model/eval_datasets.py SmartContractEvalDataset.
-    """
 
     def __init__(self, data: List[Dict], *, max_length: int = 512) -> None:
         self.data = data

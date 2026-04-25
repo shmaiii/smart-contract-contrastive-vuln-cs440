@@ -182,7 +182,6 @@ def train(config: TrainConfig) -> None:
         print(f"Validation set loaded | size={len(val_dataset)} | batches={len(val_dataloader)}")
 
     triplet_loss_fn = nn.TripletMarginLoss(margin=config.margin, p=2)
-    # BCEWithLogitsLoss handles per-sample weights via the weight argument
     bce_loss_fn = nn.BCEWithLogitsLoss(reduction="none")
 
     optimizer = AdamW(
@@ -208,13 +207,11 @@ def train(config: TrainConfig) -> None:
             labels      = batch["label"].to(device)
             weights     = batch["weight"].to(device)
 
-            # encode all three roles — classifier head only needed for anchor
             anchor_emb, anchor_scores = model(anchor_ids, anchor_mask)
             pos_emb, _                = model(pos_ids, pos_mask)
             neg_emb, _                = model(neg_ids, neg_mask)
 
             # contrastive loss (triplet)
-            # anchor_scores are raw logits — feed directly to BCEWithLogitsLoss
             l_triplet = triplet_loss_fn(anchor_emb, pos_emb, neg_emb)
             l_clf = (bce_loss_fn(anchor_scores, labels) * weights).mean()
 

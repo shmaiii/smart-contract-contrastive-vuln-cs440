@@ -2,6 +2,11 @@ import argparse, re, sys
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+'''
+This utility function is here because we only realized the need to parse loss graphs after training was finished.
+This is a script to parse the logs we obtained from training into plots
+'''
+
 BATCH = re.compile(r"Epoch\s+(\d+)/\d+:.*loss=([\d.]+)")
 VAL   = re.compile(r"validation.*?f1=([\d.]+).*?pr_auc=([\d.]+).*?roc_auc=([\d.]+)")
 ANSI  = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")

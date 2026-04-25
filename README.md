@@ -1,24 +1,32 @@
 # SemanticBERT - 440 Project
+
+SemanticBERT is a contrastive learning approach to smart contract vulnerability detection. It extends a CodeBERT encoder with a projection head trained using triplet loss alongside a binary vulnerability classifier, enabling more robust and semantically consistent representations compared to a standard fine-tuned baseline.
+
 ### File Structure:
 ```
 .
 ├── datasets/
-│   ├── contrastive_dataset.py     # Custom Dataset class for contrastive pairs
-│   └── data_preprocessing.ipynb    # Notebook for cleaning, chunking and tokenizing raw Solidity code
+│   ├── data_preprocessing.ipynb    # Notebook for cleaning, chunking and tokenizing raw Solidity code
+│   ├── sample_train.pt             # Small sample training set for local development
+│   └── sample_val.pt               # Small sample validation set for local development
 ├── evaluation/
-│   ├── eval_datasets.py           # Dataset loaders for test sets
-│   ├── evaluate.py                # Script for calculating general metrics and interpretability scores
-│   └── semanticbert-eval.ipynb    # Evaluation notebook
+│   ├── eval_datasets.py            # Dataset loaders for test sets
+│   ├── evaluate.py                 # Evaluator class: metrics, invariance, failure analysis
+│   └── semanticbert-eval.ipynb     # Full evaluation notebook (baseline vs SemanticBERT)
 ├── models/
 │   ├── baseline/
-│   │   ├── baseline.py            # Standard CodeBERT architecture for classification
-│   │   └── smart_datasets.py      # Dataset utilities specific to the baseline model
-│   └── codebert_contrastive.py     # SemanticBERT architecture with contrastive loss
+│   │   ├── baseline.py             # Standard CodeBERT classifier architecture
+│   │   └── smart_datasets.py       # Dataset utilities for the baseline model
+│   └── semantic_bert/
+│       ├── codebert_contrastive.py # SemanticBERT architecture (encoder + projection + classifier)
+│       ├── contrastive_dataset.py  # Triplet dataset with hard negative mining
+│       └── train_contrastive.py    # Training script for SemanticBERT
 ├── train/
-│   ├── train-baseline.ipynb       # Training pipeline for the baseline model
-│   └── train_contrastive.py       # Training script for the SemanticBERT model
-├── utils/                         # Helper functions and logging utilities
-├── requirements.txt               # Project dependencies
+│   ├── train-baseline.ipynb        # Training pipeline for the baseline model (Kaggle)
+│   └── train-semanticbert.ipynb    # Training pipeline for SemanticBERT (Kaggle)
+├── utils/
+│   └── plot_training.py            # Parse Kaggle training logs and plot loss/validation curves
+├── requirements.txt                # Project dependencies
 └── README.md
 ```
 
