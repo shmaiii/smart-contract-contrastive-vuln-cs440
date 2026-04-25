@@ -6,6 +6,7 @@ SemanticBERT is a contrastive learning approach to smart contract vulnerability 
 ```
 .
 ├── datasets/
+│   ├── data_augmentation.py        # Creates positive pairs for anchors
 │   ├── data_preprocessing.ipynb    # Notebook for cleaning, chunking and tokenizing raw Solidity code
 ├── evaluation/
 │   ├── eval_datasets.py            # Dataset loaders for test sets
